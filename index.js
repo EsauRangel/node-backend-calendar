@@ -1,15 +1,16 @@
 const express = require('express');
 require('dotenv').config();
-console.log(process.env)
+
 const app = express();
 
 app.use(express.static('public'));
 
-// app.get("/", (req, res)=> {
-//     res.json({
-//         ok:true
-//     })
-// })
+//Lectura y parseo del body
+app.use(express.json());
+//Rutas
+app.use('/api/auth', require('./routes/auth'));
+//TODO: auth, crear, login, renew
+
 
 
 
