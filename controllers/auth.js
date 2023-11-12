@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const Usuario = require('../models/Usuario');
+const { generarJWT } = require("../helpers/jwt")
 
 const crearUsuario = async (req, res = express.response) => {
 
@@ -19,11 +20,14 @@ const crearUsuario = async (req, res = express.response) => {
         const salt = bcrypt.genSaltSync();
         usuario.password = bcrypt.hashSync(password, salt);
         await usuario.save();
+        //Generar jwt
+        const token = await generarJWT(usuario.id, usuario.name);
 
         res.status(201).json({
             ok: true,
             uid: usuario.id,
-            name: usuario.name
+            name: usuario.name,
+            token
         });
     } catch (error) {
 
@@ -50,17 +54,21 @@ const loginUsuario = async (req, res = express.response) => {
         }
 
         let validatePassword = bcrypt.compareSync(password, usuario.password);
-        if(!validatePassword){
+        if (!validatePassword) {
             return res.status(400).json({
                 ok: false,
                 msg: "Usuario y/o contrasena incorrectos"
             });
         }
 
+        //Genera jwt
+        const token = await generarJWT(usuario.id, usuario.name);
+
         return res.json({
-            ok:true,
+            ok: true,
             uid: usuario.id,
-            name: usuario.name
+            name: usuario.name,
+            token
         });
 
 
@@ -76,11 +84,18 @@ const loginUsuario = async (req, res = express.response) => {
 };
 
 
-const revalidarToken = (req, res = express.response) => {
-    res.json({
+const revalidarToken = async (req, res = express.response) => {
+    const uid = req.uid;
+    const name = req.name;
+
+    //Renovar token
+    const token = await generarJWT(uid, name);
+;
+
+    res.status(200).json({
         ok: true,
-        msg: "renew"
-    })
+        token,
+    });
 };
 
 
